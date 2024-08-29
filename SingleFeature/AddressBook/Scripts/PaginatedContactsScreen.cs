@@ -53,23 +53,15 @@ namespace VoxelBusters.UseCases
         {
             if(error == null)
             {
-                UpdateInfo(contacts.Length > 0 ? "" : "No contacts available.");
-
-                if(contacts.Length > 0)
+                ClearCurrentPage();
+                
+                for (int iter = 0; iter < contacts.Length; iter++)
                 {
-                    ClearCurrentPage();
-                    for (int iter = 0; iter < contacts.Length; iter++)
-                    {
-                        IAddressBookContact contact = contacts[iter];
-                        ContactInfoUI cell = m_contactInfoUIPool.Get();
-                        cell.transform.SetParent(m_contactListRoot, false);
-                        UpdateContactInfoUI(contact, cell);
-                    }
-                }
-                else
-                {
-                    Debug.Log("No more contacts in next page.  So retaining the current page. This case happens when the page size is a multiple of available total contacts. As we don't know how many contacts exist ahead, we need to skip if no contacts are returned in the result.");
-                }                
+                    IAddressBookContact contact = contacts[iter];
+                    ContactInfoUI cell = m_contactInfoUIPool.Get();
+                    cell.transform.SetParent(m_contactListRoot, false);
+                    UpdateContactInfoUI(contact, cell);
+                }  
             }
             else
             {
@@ -114,7 +106,8 @@ namespace VoxelBusters.UseCases
         }
 
         private void ClearCurrentPage()
-        {
+        { 
+            UpdateInfo("");
             foreach (Transform child in m_contactListRoot)
             {
                 m_contactInfoUIPool.Release(child.GetComponent<ContactInfoUI>());
