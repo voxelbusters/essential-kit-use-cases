@@ -50,7 +50,7 @@ PrefabInstance:
     - target: {fileID: 9167283084380030332, guid: 6913b31e68e1f4dde89256edb9c32b91,
         type: 3}
       propertyPath: m_SizeDelta.y
-      value: 100
+      value: 60
       objectReference: {fileID: 0}
     - target: {fileID: 9167283084380030332, guid: 6913b31e68e1f4dde89256edb9c32b91,
         type: 3}
@@ -141,6 +141,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_fontSizeBase
       value: 30
+      objectReference: {fileID: 0}
+    - target: {fileID: 9167283084380030335, guid: 6913b31e68e1f4dde89256edb9c32b91,
+        type: 3}
+      propertyPath: m_characterSpacing
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 9167283084380030335, guid: 6913b31e68e1f4dde89256edb9c32b91,
         type: 3}

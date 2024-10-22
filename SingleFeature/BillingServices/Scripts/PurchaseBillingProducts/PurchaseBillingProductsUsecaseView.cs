@@ -7,7 +7,7 @@ using VoxelBusters.EssentialKit;
 
 namespace VoxelBusters.UseCases
 {
-    public class PurchaseBillingProductsUsecaseView : BillingServicesUsecaseViewBase
+    public class PurchaseBillingProductsUsecaseView : MonoBehaviour
     {
         #region Events
         public event Action                         OnRequestBillingProducts;
@@ -17,7 +17,10 @@ namespace VoxelBusters.UseCases
 
         #region Fields
 
-        [SerializeField] private Button             m_restorePurchasesButton;
+        [SerializeField] protected  BillingProductCell      m_billingProductCellPrefab; 
+        [SerializeField] protected  Transform               m_billingProductsContainer;
+        [SerializeField] private    Button                  m_restorePurchasesButton;
+        [SerializeField] protected  Transform               m_processingOverlay;
 
         private (IBillingProduct product, BillingProductCell cell)?         m_currentPurchasingProduct;
         private List<(IBillingProduct product, BillingProductCell cell)>    m_cachedMap = new List<(IBillingProduct product, BillingProductCell cell)>();
@@ -43,17 +46,16 @@ namespace VoxelBusters.UseCases
                 return;
             }
 
-            foreach(IBillingProduct billingProduct in products)
+            foreach(IBillingProduct product in products)
             {
                 //Instantiate the product cell
-                BillingProductCell cell = GetBillingProductCell(billingProduct);
-                cell.OnBuyClicked += () => OnBuyButtonClicked(cell, billingProduct);
-                
-                //Get the container where to place this product (In this demo we group the UI based on product types)
-                cell.transform.SetParent(m_billingProductsContainer, false);
 
+                BillingProductCell cell = Instantiate(m_billingProductCellPrefab, m_billingProductsContainer);
+                cell.SetData(product.LocalizedTitle, product.LocalizedDescription, product.Price.LocalizedText, null);
+                cell.OnBuyClicked += () => OnBuyButtonClicked(cell, product);
+                
                 //Adding for future use to find a cell related to a billing product
-                m_cachedMap.Add((billingProduct, cell));
+                m_cachedMap.Add((product, cell));
             }
 
             //Request restore purchases to update the cell buy status. Passing true should be done only if its a user action as it may prompt a login dialog, else false.
@@ -108,9 +110,10 @@ namespace VoxelBusters.UseCases
                     var cell = FindBillingProductCell(transaction.Product);
                     var isPurchasedAndVerified = transaction.TransactionState           == BillingTransactionState.Purchased && 
                                                 transaction.ReceiptVerificationState    == BillingReceiptVerificationState.Success;
+                    var productType = transaction.Product.Type;
 
                     //Allow to purchase only if its not yet done!                                                
-                    cell.SetBuyStatus(!isPurchasedAndVerified);    
+                    cell.SetPurchaseStatus(isPurchasedAndVerified, GetPurchaseInfo(transaction, isPurchasedAndVerified));    
                 }
             }
         }
@@ -164,7 +167,7 @@ namespace VoxelBusters.UseCases
             {
                 var cell = FindBillingProductCell(transaction.Product);
                 var alreadyPurchased = transaction.TransactionState == BillingTransactionState.Purchased && transaction.ReceiptVerificationState == BillingReceiptVerificationState.Success;
-                cell.SetBuyStatus(!alreadyPurchased);
+                cell.SetPurchaseStatus(alreadyPurchased, GetPurchaseInfo(transaction, alreadyPurchased));
             }
         }
 
@@ -186,6 +189,31 @@ namespace VoxelBusters.UseCases
             }
 
             return null;
+        }
+
+        private void SetProcessingOverlayStatus(bool isEnabled)
+        {
+            m_processingOverlay.gameObject.SetActive(isEnabled);
+        }
+
+        private string GetPurchaseInfo(IBillingTransaction transaction, bool isPurchased)
+        {
+            string  purchaseInfo    = null;
+            var     productType     = transaction.Product.Type;
+
+            if(isPurchased == false || productType == BillingProductType.Consumable)
+                return null;
+            
+            if(productType == BillingProductType.Subscription)
+            {
+                purchaseInfo = $"Subscribed since {transaction.Date.ToString("MMMM yyyy")} \n Renews {transaction.Product.SubscriptionInfo.Period.Unit}ly";
+            }
+            else
+            {
+                purchaseInfo = "Purchased";
+            }
+
+            return purchaseInfo;
         }
 
         #endregion

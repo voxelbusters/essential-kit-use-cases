@@ -13,6 +13,7 @@ namespace VoxelBusters.UseCases
         [SerializeField] private TMP_Text   m_price;
         [SerializeField] private RawImage   m_image;
         [SerializeField] private Transform  m_purchaseStatus;
+        [SerializeField] private TMP_Text   m_purchaseInfo;
         [SerializeField] private Button     m_buyButton;
 
         public Action OnBuyClicked;
@@ -32,13 +33,14 @@ namespace VoxelBusters.UseCases
                 texture.OnTextureLoaded += SetImage;
             }
 
-            SetBuyStatus(true);
+            SetPurchaseStatus(isPurchased: false, null);
         }
 
-        public void SetBuyStatus(bool enable)
+        public void SetPurchaseStatus(bool isPurchased, string info)
         {
-            m_buyButton.interactable = enable;
-            m_purchaseStatus.gameObject.SetActive(!enable);
+            m_buyButton.interactable = !isPurchased;
+            m_purchaseStatus.gameObject.SetActive(isPurchased);
+            m_purchaseInfo.text = info;
         }
 
         private void SetTitle(string name)
